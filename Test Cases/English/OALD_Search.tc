@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>Search vocabulary</description>
+   <name>OALD_Search</name>
+   <tag></tag>
+   <comment></comment>
+   <testCaseGuid>9f5a0207-635a-4b70-a775-294f9fb2e927</testCaseGuid>
+</TestCaseEntity>
