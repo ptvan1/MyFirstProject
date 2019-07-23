@@ -38,57 +38,79 @@ import org.apache.poi.xssf.usermodel.XSSFRow as XSSFRow
 import org.apache.poi.xssf.usermodel.XSSFSheet as XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook as XSSFWorkbook
 import com.kms.katalon.core.testobject.ConditionType
-import commonKeywords.Common
+import common.Common
 
-//KeywordLogger log = new KeywordLogger()
-//Common commonPage = new Common()
-//commonPage.writeExcel("E:\\Work\\BHS\\Automation\\Practice\\Data Files\\Vocabulary.xlsx", "Sheet2", 5, 1, "Test call function")
-//List<String> list_word = commonPage.readExcel("E:\\Work\\BHS\\Automation\\Practice\\Data Files\\Vocabulary.xlsx", "Sheet2", "Words","List")
-//String string_word = commonPage.readExcel("E:\\Work\\BHS\\Automation\\Practice\\Data Files\\Vocabulary.xlsx", "Sheet2", "Words","String")
-//KeywordUtil.logInfo("Word: " + word)
 data = ExcelFactory.getExcelDataWithDefaultSheet("D:\\Van\\ptvan1\\Study\\English\\Vocabulary.xlsx", "Sheet2", true)
-FileInputStream fis = new FileInputStream(path)
+FileInputStream fis = new FileInputStream("D:\\Van\\ptvan1\\Study\\English\\Vocabulary.xlsx")
 XSSFWorkbook workbook = new XSSFWorkbook(fis)
-XSSFSheet sheet = workbook.getSheet(sheetName)
+XSSFSheet sheet = workbook.getSheet("Sheet2")
 
 
 int rowCount = data.getRowNumbers()
 String word=''
 
-//KeywordUtil.logInfo("Word by list is: " + list_word)
-//KeywordUtil.logInfo("Word by string is: " + string_word)
-/*for(int i=0; i<5; i++){
-	KeywordUtil.logInfo("Word " + (i+1) + " is: " + list_word[i])
-}*/
-
-String definationOfWordObj = "//*[h2]/following::span[@class='def'][1]"
+String definationOfWordObj = "//*[h2]/following::span[@class='def'][%s]"
 String searchBoxObj = "//*[@id='q']"
 String searchIconObj ="//*[input[@type='submit']]"
-String typeOfWordObj ="//*[h2]/following::span[@class='pos']"
+String typeOfWordObj ="//*[h2]/span[3]"
 String pronounceObj ="//*[h2]/following::span[@class='phon']"
+String exampleObj ="//*[h2]/following::span[@class='def'][%s]/following::span[@class='x-gs'][1]/span[@class='x-g'][1]"
+String synonymObj ="//*[span[text()='synonym']]//span[@class='xh']"
+String oppositeObj ="//*[span[text()='opposite']]//span[@class='xh']"
+String synonym =''
+String opposite =''
 String definition = ''
 String type = ''
 String pronounce = ''
+String example = ''
 
 Common commonPage = new Common()
 WebUI.openBrowser('')
-WebUI.maximizeWindow()
+//WebUI.maximizeWindow()
 
 WebUI.navigateToUrl('https://www.oxfordlearnersdictionaries.com/us/')
-//WebUI.navigateToUrl('google.com')
+
 for (int i=1; i<=rowCount; i++){
 	word = data.getValue("Words", i)
 	commonPage.setTextElement(searchBoxObj, word)
 	commonPage.clickElement(searchIconObj)
 	type = commonPage.getTextElement(typeOfWordObj)
 	pronounce = commonPage.getTextElement(pronounceObj)
-	definition = commonPage.getTextElement(definationOfWordObj)
-	sheet.getRow(i).createCell(3).setCellValue(type)
-	sheet.getRow(i).createCell(4).setCellValue(pronounce)
+	for(int j = 1; j<=2; j++){
+		String xpath_def = String.format(definationOfWordObj, j)
+		String xpath_exp = String.format(exampleObj,j)
+		if(WebUI.verifyElementVisible(commonPage.object(xpath_def), FailureHandling.OPTIONAL)){
+			definition = definition + "- " + commonPage.getTextElement(xpath_def) + "\n"
+			xpath_def = ''
+		}else{
+			break;
+		}
+			
+		if(WebUI.verifyElementVisible(commonPage.object(xpath_exp), FailureHandling.OPTIONAL)){
+			example = example + "- " + commonPage.getTextElement(xpath_exp) + "\n"
+			xpath_exp = ''
+		}else{
+			break;
+		}	
+	}
+	if(WebUI.verifyElementVisible(commonPage.object(synonymObj), FailureHandling.OPTIONAL)){
+		synonym = "- " + commonPage.getTextElement(synonymObj)
+		sheet.getRow(i).createCell(4).setCellValue(synonym)
+	}
+		
+	if(WebUI.verifyElementVisible(commonPage.object(oppositeObj), FailureHandling.OPTIONAL)){
+		opposite = "- " + commonPage.getTextElement(oppositeObj)
+		sheet.getRow(i).createCell(5).setCellValue(opposite)
+	}
+	sheet.getRow(i).createCell(0).setCellValue(i)
+	sheet.getRow(i).createCell(2).setCellValue(type)
+	sheet.getRow(i).createCell(3).setCellValue(pronounce)
 	sheet.getRow(i).createCell(6).setCellValue(definition)
-	
+	sheet.getRow(i).createCell(7).setCellValue(example)
+	definition = ''
+	example = ''
 }
-FileOutputStream fos = new FileOutputStream(path)
+FileOutputStream fos = new FileOutputStream("D:\\Van\\ptvan1\\Study\\English\\Vocabulary.xlsx")
 workbook.write(fos)
 fos.close()
 WebUI.closeBrowser()
